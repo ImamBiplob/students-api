@@ -37,8 +37,11 @@ public class StudentService {
     }
 
     public String deleteStudent(int id) {
+        Student student = repository.findById(id).orElse(null);
+        assert student != null;
+        String name = student.getFirstName();
         repository.deleteById(id);
-        return "Student Profile Deleted of ID: " + id;
+        return "Student Profile Deleted of ID: " + id + " and Name: " + name;
     }
 
     public Student updateStudent(Student student) {

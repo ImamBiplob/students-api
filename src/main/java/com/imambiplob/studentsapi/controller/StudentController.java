@@ -2,6 +2,7 @@ package com.imambiplob.studentsapi.controller;
 
 import com.imambiplob.studentsapi.entity.Student;
 import com.imambiplob.studentsapi.service.StudentService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,12 +16,12 @@ public class StudentController {
     }
 
     @PostMapping("/addStudent")
-    public Student addStudent(@RequestBody Student student) {
+    public Student addStudent(@Valid @RequestBody Student student) {
         return service.saveStudent(student);
     }
 
     @PostMapping("/addStudents")
-    public List<Student> addStudents(@RequestBody List<Student> students) {
+    public List<Student> addStudents(@Valid @RequestBody List<Student> students) {
         return service.saveStudents(students);
     }
 
