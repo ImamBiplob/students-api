@@ -9,7 +9,6 @@ import java.util.List;
 @Service
 public class StudentService {
     private final StudentRepository repository;
-
     public StudentService(StudentRepository repository) {
         this.repository = repository;
     }
@@ -53,8 +52,8 @@ public class StudentService {
         existingStudent.setNationality(student.getNationality());
         existingStudent.setContact(student.getContact());
         existingStudent.setAddress(student.getAddress());
-        existingStudent.setResult1(student.getResult1());
-        existingStudent.setResult2(student.getResult2());
+        existingStudent.setSsc(student.getSsc());
+        existingStudent.setHsc(student.getHsc());
 
         return repository.save(existingStudent);
     }
