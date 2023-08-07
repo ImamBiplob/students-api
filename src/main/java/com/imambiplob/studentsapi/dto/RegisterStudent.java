@@ -1,6 +1,5 @@
-package com.imambiplob.studentsapi.entity;
+package com.imambiplob.studentsapi.dto;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,16 +9,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "student_tbl")
-public class Student {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+public class RegisterStudent {
     @NotNull(message = "This field should not be empty")
     @Size(min = 2, max = 50,message = "First Name should be between 2 to 50 characters")
     private String firstName;
@@ -28,22 +23,14 @@ public class Student {
     private String lastName;
     @NotBlank(message = "Email is mandatory")
     @Email(message = "Email should be valid")
-    @Column(unique = true)
     private String email;
+    @NotBlank(message = "Contact number is mandatory")
+    private String contact;
     private LocalDate dob;
     @NotNull(message = "This field should not be empty")
     private String board;
-    @NotBlank(message = "Contact number is mandatory")
-    @Column(unique = true)
-    private String contact;
     private String address;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "ssc_id", referencedColumnName = "sscId")
-    private SSC ssc;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "hsc_id", referencedColumnName = "hscId")
-    private HSC hsc;
-
+    private List<SubjectGpaDto> ssc;
+    private List<SubjectGpaDto> hsc;
 }

@@ -1,5 +1,6 @@
 package com.imambiplob.studentsapi.service;
 
+import com.imambiplob.studentsapi.dto.SubjectGpaDto;
 import com.imambiplob.studentsapi.entity.HSC;
 import com.imambiplob.studentsapi.enums.Grade;
 import com.imambiplob.studentsapi.enums.HSCSubject;
@@ -19,15 +20,15 @@ public class HSCService {
         this.hscRepository = hscRepository;
     }
 
-    public void addSubjectGradeMapping(HSC hsc, List<String> subjectLabels, List<String> gradeLabels) {
-        Iterator<String> gradesIterator = gradeLabels.iterator();
-        for (String subjectLabel : subjectLabels) {
-            HSCSubject subject = HSCSubject.getSubjectByLabel(subjectLabel);
-            String gradeLabel = gradesIterator.next();
-            Grade grade = Grade.getSubjectByLabel(gradeLabel);
-            hsc.getSubjectGradeMap().put(subject, grade);
+    public void addSubjectGradeMapping(List<SubjectGpaDto> hsc, HSC newHsc) {
+
+        for (SubjectGpaDto subjectGpa : hsc) {
+            HSCSubject subject = HSCSubject.getSubjectByLabel(subjectGpa.getSubject());
+            Grade grade = Grade.getSubjectByLabel(subjectGpa.getGpa());
+            newHsc.getSubjectGradeMap().put(subject, grade);
         }
-        hscRepository.save(hsc);
+
+        hscRepository.save(newHsc);
     }
 
     public Grade getGradeForSubject(HSC ssc, HSCSubject subject) {

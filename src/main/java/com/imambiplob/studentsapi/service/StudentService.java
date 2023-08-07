@@ -1,9 +1,16 @@
 package com.imambiplob.studentsapi.service;
 
+import com.imambiplob.studentsapi.dto.RegisterStudent;
+import com.imambiplob.studentsapi.dto.StudentDashboard;
+import com.imambiplob.studentsapi.dto.SubjectGpaDto;
 import com.imambiplob.studentsapi.entity.Student;
+import com.imambiplob.studentsapi.enums.Grade;
+import com.imambiplob.studentsapi.enums.HSCSubject;
+import com.imambiplob.studentsapi.enums.SSCSubject;
 import com.imambiplob.studentsapi.repository.StudentRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -15,12 +22,50 @@ public class StudentService {
 
     public Student saveStudent(Student student) { return repository.save(student);}
 
-    public List<Student> saveStudents(List<Student> students) {
-        return repository.saveAll(students);
-    }
 
-    public List<Student> getStudents() {
-        return repository.findAll();
+    public List<StudentDashboard> getStudents() {
+        List<Student> students = repository.findAll();
+        List<StudentDashboard> studentsDashboard = new ArrayList<>();
+        for(Student student: students) {
+            StudentDashboard studentDashboard = new StudentDashboard();
+            studentDashboard.setId(student.getId());
+            studentDashboard.setFirstName(student.getFirstName());
+            studentDashboard.setLastName(student.getLastName());
+            studentDashboard.setEmail(student.getEmail());
+            studentDashboard.setContact(student.getContact());
+            studentDashboard.setDob(student.getDob());
+            studentDashboard.setAddress(student.getAddress());
+            studentDashboard.setBoard(student.getBoard());
+
+            List<SubjectGpaDto> ssc = new ArrayList<>();
+            List<SubjectGpaDto> hsc = new ArrayList<>();
+
+            // Mapping SubjectGrade hashmap to List of SubjectGpa objects for ssc
+            for(SSCSubject sscSubject: student.getSsc().getSubjectGradeMap().keySet()) {
+                String subject = SSCSubject.getLabelBySubject(sscSubject);
+                String gpa = Grade.getLabelByGrade(student.getSsc().getSubjectGradeMap().get(sscSubject));
+                SubjectGpaDto subjectGpaDto = new SubjectGpaDto();
+                subjectGpaDto.setSubject(subject);
+                subjectGpaDto.setGpa(gpa);
+                ssc.add(subjectGpaDto);
+            }
+
+            //Mapping SubjectGrade hashmap to List of SubjectGpa objects for hsc
+            for(HSCSubject hscSubject: student.getHsc().getSubjectGradeMap().keySet()) {
+                String subject = HSCSubject.getLabelBySubject(hscSubject);
+                String gpa = Grade.getLabelByGrade(student.getHsc().getSubjectGradeMap().get(hscSubject));
+                SubjectGpaDto subjectGpaDto = new SubjectGpaDto();
+                subjectGpaDto.setSubject(subject);
+                subjectGpaDto.setGpa(gpa);
+                hsc.add(subjectGpaDto);
+            }
+
+            studentDashboard.setSsc(ssc);
+            studentDashboard.setHsc(hsc);
+            studentsDashboard.add(studentDashboard);
+        }
+
+        return studentsDashboard;
     }
 
     public Student getStudentById(int id) {
@@ -43,17 +88,14 @@ public class StudentService {
         return "Student Profile Deleted of ID: " + id + " and Name: " + name;
     }
 
-    public Student updateStudent(Student student) {
-        Student existingStudent = repository.findById(student.getId()).orElse(null);
+    public Student updateStudent(Student existingStudent, RegisterStudent student) {
         existingStudent.setFirstName(student.getFirstName());
         existingStudent.setLastName(student.getLastName());
         existingStudent.setEmail(student.getEmail());
         existingStudent.setDob(student.getDob());
-        existingStudent.setNationality(student.getNationality());
+        existingStudent.setBoard(student.getBoard());
         existingStudent.setContact(student.getContact());
         existingStudent.setAddress(student.getAddress());
-        existingStudent.setSsc(student.getSsc());
-        existingStudent.setHsc(student.getHsc());
 
         return repository.save(existingStudent);
     }

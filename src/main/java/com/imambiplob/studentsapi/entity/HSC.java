@@ -23,14 +23,6 @@ public class HSC {
     private int hscId;
 
     @ElementCollection
-    @CollectionTable(name = "hsc_subjects", joinColumns = @JoinColumn(name = "hscId", referencedColumnName = "hscId"))
-    private List<String> hscSubjects = new ArrayList<>();
-
-    @ElementCollection
-    @CollectionTable(name = "hsc_grades", joinColumns = @JoinColumn(name = "hscId", referencedColumnName = "hscId"))
-    private List<String> hscGrades = new ArrayList<>();
-
-    @ElementCollection
     @MapKeyEnumerated(EnumType.STRING)
     @Enumerated(EnumType.STRING)
     private Map<HSCSubject, Grade> subjectGradeMap = new HashMap<>();

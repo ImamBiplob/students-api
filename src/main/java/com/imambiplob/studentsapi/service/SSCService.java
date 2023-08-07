@@ -1,5 +1,6 @@
 package com.imambiplob.studentsapi.service;
 
+import com.imambiplob.studentsapi.dto.SubjectGpaDto;
 import com.imambiplob.studentsapi.entity.HSC;
 import com.imambiplob.studentsapi.entity.SSC;
 import com.imambiplob.studentsapi.enums.Grade;
@@ -21,15 +22,15 @@ public class SSCService {
         this.sscRepository = sscRepository;
     }
 
-    public void addSubjectGradeMapping(SSC ssc, List<String> subjectLabels, List<String> gradeLabels) {
-        Iterator<String> gradesIterator = gradeLabels.iterator();
-        for (String subjectLabel : subjectLabels) {
-            SSCSubject subject = SSCSubject.getSubjectByLabel(subjectLabel);
-            String gradeLabel = gradesIterator.next();
-            Grade grade = Grade.getSubjectByLabel(gradeLabel);
-            ssc.getSubjectGradeMap().put(subject, grade);
+    public void addSubjectGradeMapping(List<SubjectGpaDto> ssc, SSC newSsc) {
+
+        for (SubjectGpaDto subjectGpa : ssc) {
+            SSCSubject subject = SSCSubject.getSubjectByLabel(subjectGpa.getSubject());
+            Grade grade = Grade.getSubjectByLabel(subjectGpa.getGpa());
+            newSsc.getSubjectGradeMap().put(subject, grade);
         }
-        sscRepository.save(ssc);
+
+        sscRepository.save(newSsc);
     }
 
     public Grade getGradeForSubject(SSC ssc, SSCSubject subject) {
