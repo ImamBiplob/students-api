@@ -33,7 +33,8 @@ public class Student {
     private LocalDate dob;
     @NotNull(message = "Board should not be empty")
     private String board;
-    @NotBlank(message = "Contact number is mandatory")
+    @NotBlank(message = "Password is mandatory")
+    private String password;
     private String contact;
     private String address;
 

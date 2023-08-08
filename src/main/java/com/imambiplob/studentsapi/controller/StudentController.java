@@ -50,7 +50,7 @@ public class StudentController {
 
     @PostMapping("/authenticate")
     public String authAndGetToken(@RequestBody AuthRequest authRequest) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getContact()));
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
         if(authentication.isAuthenticated())
             return jwtService.generateToken(authRequest.getEmail());
         else throw new UsernameNotFoundException("Invalid User Request!!!");
@@ -58,7 +58,7 @@ public class StudentController {
     }
     @PostMapping("/addStudent")
     public Student addStudent(@Valid @RequestBody RegisterStudent student) {
-        student.setContact(passwordEncoder.encode(student.getContact()));
+        student.setPassword(passwordEncoder.encode(student.getPassword()));
         Student newStudent = new Student();
         newStudent.setSsc(new SSC());
         newStudent.setHsc(new HSC());
@@ -126,7 +126,7 @@ public class StudentController {
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateStudent(@Valid @RequestBody RegisterStudent student, @PathVariable int id, Principal principal) {
         if(Objects.equals(principal.getName(), studentService.getStudentById(id).getEmail())) {
-            student.setContact(passwordEncoder.encode(student.getContact()));
+            student.setPassword(passwordEncoder.encode(student.getPassword()));
             Student existingStudent = studentService.getStudentById(id);
             sscService.addSubjectGradeMapping(student.getSsc(), existingStudent.getSsc());
             hscService.addSubjectGradeMapping(student.getHsc(), existingStudent.getHsc());

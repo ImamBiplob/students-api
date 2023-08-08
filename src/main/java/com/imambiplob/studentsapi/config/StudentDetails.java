@@ -12,13 +12,13 @@ import java.util.stream.Collectors;
 
 public class StudentDetails implements UserDetails {
 
-    private String email;
-    private String contact;
-    private List<GrantedAuthority> authorityList;
+    private final String email;
+    private final String password;
+    private final List<GrantedAuthority> authorityList;
 
     public StudentDetails(Student student) {
         email = student.getEmail();
-        contact = student.getContact();
+        password = student.getPassword();
         authorityList = Arrays.stream(student.getBoard().split(","))
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
@@ -31,7 +31,7 @@ public class StudentDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return contact;
+        return password;
     }
 
     @Override

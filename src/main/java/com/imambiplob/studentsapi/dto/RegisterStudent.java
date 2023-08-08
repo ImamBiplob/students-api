@@ -24,7 +24,8 @@ public class RegisterStudent {
     @NotBlank(message = "Email is mandatory")
     @Email(message = "Email should be valid")
     private String email;
-    @NotBlank(message = "Contact number is mandatory")
+    @NotBlank(message = "Password is mandatory")
+    private String password;
     private String contact;
     private LocalDate dob;
     @NotNull(message = "This field should not be empty")

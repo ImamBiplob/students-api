@@ -26,10 +26,10 @@ public class StudentService {
         studentDashboard.setFirstName(student.getFirstName());
         studentDashboard.setLastName(student.getLastName());
         studentDashboard.setEmail(student.getEmail());
-        studentDashboard.setContact(student.getContact());
         studentDashboard.setDob(student.getDob());
         studentDashboard.setAddress(student.getAddress());
         studentDashboard.setBoard(student.getBoard());
+        studentDashboard.setContact(student.getContact());
 
         List<SubjectGpaDto> ssc = new ArrayList<>();
         List<SubjectGpaDto> hsc = new ArrayList<>();
@@ -65,9 +65,10 @@ public class StudentService {
         newStudent.setLastName(student.getLastName());
         newStudent.setDob(student.getDob());
         newStudent.setEmail(student.getEmail());
-        newStudent.setContact(student.getContact());
+        newStudent.setPassword(student.getPassword());
         newStudent.setAddress(student.getAddress());
         newStudent.setBoard(student.getBoard());
+        newStudent.setContact(student.getContact());
 
         return repository.save(newStudent);
     }
@@ -116,8 +117,9 @@ public class StudentService {
         existingStudent.setEmail(student.getEmail());
         existingStudent.setDob(student.getDob());
         existingStudent.setBoard(student.getBoard());
-        existingStudent.setContact(student.getContact());
+        existingStudent.setPassword(student.getPassword());
         existingStudent.setAddress(student.getAddress());
+        existingStudent.setContact(student.getContact());
 
         return repository.save(existingStudent);
     }
