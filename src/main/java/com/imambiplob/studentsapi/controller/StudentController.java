@@ -70,29 +70,17 @@ public class StudentController {
 
     @GetMapping("/SSCSubjects")
     public List<String> getSSCSubjects() {
-        List<String> sscSubjectList = new ArrayList<>();
-        for(SSCSubject subject: SSCSubject.values()) {
-            sscSubjectList.add(SSCSubject.getLabelBySubject(subject));
-        }
-        return sscSubjectList;
+        return SSCSubject.getAllLabels();
     }
 
     @GetMapping("/HSCSubjects")
     public List<String> getHSCSubjects() {
-        List<String> hscSubjectList = new ArrayList<>();
-        for(HSCSubject subject: HSCSubject.values()) {
-            hscSubjectList.add(HSCSubject.getLabelBySubject(subject));
-        }
-        return hscSubjectList;
+        return HSCSubject.getAllLabels();
     }
 
     @GetMapping("/Grades")
     public List<String> getGrades() {
-        List<String> gradeList = new ArrayList<>();
-        for (Grade grade: Grade.values()) {
-            gradeList.add(Grade.getLabelByGrade(grade));
-        }
-        return gradeList;
+        return Grade.getAllLabels();
     }
 
     @GetMapping("/students")

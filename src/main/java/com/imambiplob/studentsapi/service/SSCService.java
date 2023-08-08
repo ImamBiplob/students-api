@@ -33,8 +33,4 @@ public class SSCService {
         sscRepository.save(newSsc);
     }
 
-    public Grade getGradeForSubject(SSC ssc, SSCSubject subject) {
-        return ssc.getSubjectGradeMap().get(subject);
-    }
-
 }

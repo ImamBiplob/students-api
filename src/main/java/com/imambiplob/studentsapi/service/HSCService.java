@@ -31,7 +31,4 @@ public class HSCService {
         hscRepository.save(newHsc);
     }
 
-    public Grade getGradeForSubject(HSC ssc, HSCSubject subject) {
-        return ssc.getSubjectGradeMap().get(subject);
-    }
 }
