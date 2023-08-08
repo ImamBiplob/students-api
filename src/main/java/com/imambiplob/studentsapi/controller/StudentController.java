@@ -13,6 +13,8 @@ import com.imambiplob.studentsapi.service.HSCService;
 import com.imambiplob.studentsapi.service.JwtService;
 import com.imambiplob.studentsapi.service.SSCService;
 import com.imambiplob.studentsapi.service.StudentService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,8 +24,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 public class StudentController {
@@ -56,19 +60,12 @@ public class StudentController {
     public Student addStudent(@Valid @RequestBody RegisterStudent student) {
         student.setContact(passwordEncoder.encode(student.getContact()));
         Student newStudent = new Student();
-        newStudent.setFirstName(student.getFirstName());
-        newStudent.setLastName(student.getLastName());
-        newStudent.setDob(student.getDob());
-        newStudent.setEmail(student.getEmail());
-        newStudent.setContact(student.getContact());
-        newStudent.setAddress(student.getAddress());
-        newStudent.setBoard(student.getBoard());
         newStudent.setSsc(new SSC());
         newStudent.setHsc(new HSC());
         sscService.addSubjectGradeMapping(student.getSsc(), newStudent.getSsc());
         hscService.addSubjectGradeMapping(student.getHsc(), newStudent.getHsc());
 
-        return studentService.saveStudent(newStudent);
+        return studentService.saveStudent(newStudent, student);
     }
 
     @GetMapping("/SSCSubjects")
@@ -104,9 +101,16 @@ public class StudentController {
         return studentService.getStudents();
     }
 
-    @GetMapping("/studentById/{id}")
-    public Student getStudentById(@PathVariable int id) {
-        return studentService.getStudentById(id);
+    @GetMapping("/student/{id}")
+    public ResponseEntity<?> getStudentById(@PathVariable int id, Principal principal) {
+
+        if(Objects.equals(principal.getName(), studentService.getStudentById(id).getEmail())) {
+            StudentDashboard student = studentService.getStudent(id);
+            return new ResponseEntity<>(student, HttpStatus.OK);
+        }
+
+        String message = "You are not allowed to view this profile";
+        return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
     }
 
     @GetMapping("/studentByFirstName/{firstName}")
@@ -120,16 +124,27 @@ public class StudentController {
     }
 
     @PutMapping("/update/{id}")
-    public Student updateStudent(@Valid @RequestBody RegisterStudent student, @PathVariable int id) {
-        student.setContact(passwordEncoder.encode(student.getContact()));
-        Student existingStudent = studentService.getStudentById(id);
-        sscService.addSubjectGradeMapping(student.getSsc(), existingStudent.getSsc());
-        hscService.addSubjectGradeMapping(student.getHsc(), existingStudent.getHsc());
-        return studentService.updateStudent(existingStudent, student);
+    public ResponseEntity<?> updateStudent(@Valid @RequestBody RegisterStudent student, @PathVariable int id, Principal principal) {
+        if(Objects.equals(principal.getName(), studentService.getStudentById(id).getEmail())) {
+            student.setContact(passwordEncoder.encode(student.getContact()));
+            Student existingStudent = studentService.getStudentById(id);
+            sscService.addSubjectGradeMapping(student.getSsc(), existingStudent.getSsc());
+            hscService.addSubjectGradeMapping(student.getHsc(), existingStudent.getHsc());
+            Student updatedStudent = studentService.updateStudent(existingStudent, student);
+            return new ResponseEntity<>(updatedStudent, HttpStatus.OK);
+        }
+
+        String message = "You are not allowed to update this profile";
+        return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
     }
 
     @DeleteMapping("/delete/{id}")
-    public String deleteStudent(@PathVariable int id) {
-        return studentService.deleteStudent(id);
+    public ResponseEntity<String> deleteStudent(@PathVariable int id, Principal principal) {
+        if (Objects.equals(principal.getName(), studentService.getStudentById(id).getEmail())) {
+            String message = studentService.deleteStudent(id);
+            return new ResponseEntity<>(message, HttpStatus.OK);
+        }
+        String message = "You can not delete other student's profile!!!";
+        return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
     }
 }

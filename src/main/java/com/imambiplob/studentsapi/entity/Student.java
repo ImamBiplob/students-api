@@ -20,10 +20,10 @@ public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @NotNull(message = "This field should not be empty")
+    @NotNull(message = "First Name should not be empty")
     @Size(min = 2, max = 50,message = "First Name should be between 2 to 50 characters")
     private String firstName;
-    @NotNull(message = "This field should not be empty")
+    @NotNull(message = "First Name should not be empty")
     @Size(min = 2, max = 50,message = "Last Name should be between 2 to 50 characters")
     private String lastName;
     @NotBlank(message = "Email is mandatory")
@@ -31,10 +31,9 @@ public class Student {
     @Column(unique = true)
     private String email;
     private LocalDate dob;
-    @NotNull(message = "This field should not be empty")
+    @NotNull(message = "Board should not be empty")
     private String board;
     @NotBlank(message = "Contact number is mandatory")
-    @Column(unique = true)
     private String contact;
     private String address;
 

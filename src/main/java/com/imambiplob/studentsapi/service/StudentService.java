@@ -20,52 +20,74 @@ public class StudentService {
         this.repository = repository;
     }
 
-    public Student saveStudent(Student student) { return repository.save(student);}
+    private static StudentDashboard convertStudentToStudentDashboard(Student student) {
+        StudentDashboard studentDashboard = new StudentDashboard();
+        studentDashboard.setId(student.getId());
+        studentDashboard.setFirstName(student.getFirstName());
+        studentDashboard.setLastName(student.getLastName());
+        studentDashboard.setEmail(student.getEmail());
+        studentDashboard.setContact(student.getContact());
+        studentDashboard.setDob(student.getDob());
+        studentDashboard.setAddress(student.getAddress());
+        studentDashboard.setBoard(student.getBoard());
+
+        List<SubjectGpaDto> ssc = new ArrayList<>();
+        List<SubjectGpaDto> hsc = new ArrayList<>();
+
+        // Converting SubjectGrade hashmap to List of SubjectGpa objects for ssc
+        for(SSCSubject sscSubject: student.getSsc().getSubjectGradeMap().keySet()) {
+            String subject = SSCSubject.getLabelBySubject(sscSubject);
+            String gpa = Grade.getLabelByGrade(student.getSsc().getSubjectGradeMap().get(sscSubject));
+            SubjectGpaDto subjectGpaDto = new SubjectGpaDto();
+            subjectGpaDto.setSubject(subject);
+            subjectGpaDto.setGpa(gpa);
+            ssc.add(subjectGpaDto);
+        }
+
+        // Converting SubjectGrade hashmap to List of SubjectGpa objects for hsc
+        for(HSCSubject hscSubject: student.getHsc().getSubjectGradeMap().keySet()) {
+            String subject = HSCSubject.getLabelBySubject(hscSubject);
+            String gpa = Grade.getLabelByGrade(student.getHsc().getSubjectGradeMap().get(hscSubject));
+            SubjectGpaDto subjectGpaDto = new SubjectGpaDto();
+            subjectGpaDto.setSubject(subject);
+            subjectGpaDto.setGpa(gpa);
+            hsc.add(subjectGpaDto);
+        }
+
+        studentDashboard.setSsc(ssc);
+        studentDashboard.setHsc(hsc);
+
+        return studentDashboard;
+    }
+
+    public Student saveStudent(Student newStudent, RegisterStudent student) {
+        newStudent.setFirstName(student.getFirstName());
+        newStudent.setLastName(student.getLastName());
+        newStudent.setDob(student.getDob());
+        newStudent.setEmail(student.getEmail());
+        newStudent.setContact(student.getContact());
+        newStudent.setAddress(student.getAddress());
+        newStudent.setBoard(student.getBoard());
+
+        return repository.save(newStudent);
+    }
 
 
     public List<StudentDashboard> getStudents() {
         List<Student> students = repository.findAll();
         List<StudentDashboard> studentsDashboard = new ArrayList<>();
         for(Student student: students) {
-            StudentDashboard studentDashboard = new StudentDashboard();
-            studentDashboard.setId(student.getId());
-            studentDashboard.setFirstName(student.getFirstName());
-            studentDashboard.setLastName(student.getLastName());
-            studentDashboard.setEmail(student.getEmail());
-            studentDashboard.setContact(student.getContact());
-            studentDashboard.setDob(student.getDob());
-            studentDashboard.setAddress(student.getAddress());
-            studentDashboard.setBoard(student.getBoard());
-
-            List<SubjectGpaDto> ssc = new ArrayList<>();
-            List<SubjectGpaDto> hsc = new ArrayList<>();
-
-            // Mapping SubjectGrade hashmap to List of SubjectGpa objects for ssc
-            for(SSCSubject sscSubject: student.getSsc().getSubjectGradeMap().keySet()) {
-                String subject = SSCSubject.getLabelBySubject(sscSubject);
-                String gpa = Grade.getLabelByGrade(student.getSsc().getSubjectGradeMap().get(sscSubject));
-                SubjectGpaDto subjectGpaDto = new SubjectGpaDto();
-                subjectGpaDto.setSubject(subject);
-                subjectGpaDto.setGpa(gpa);
-                ssc.add(subjectGpaDto);
-            }
-
-            //Mapping SubjectGrade hashmap to List of SubjectGpa objects for hsc
-            for(HSCSubject hscSubject: student.getHsc().getSubjectGradeMap().keySet()) {
-                String subject = HSCSubject.getLabelBySubject(hscSubject);
-                String gpa = Grade.getLabelByGrade(student.getHsc().getSubjectGradeMap().get(hscSubject));
-                SubjectGpaDto subjectGpaDto = new SubjectGpaDto();
-                subjectGpaDto.setSubject(subject);
-                subjectGpaDto.setGpa(gpa);
-                hsc.add(subjectGpaDto);
-            }
-
-            studentDashboard.setSsc(ssc);
-            studentDashboard.setHsc(hsc);
+            StudentDashboard studentDashboard = convertStudentToStudentDashboard(student);
             studentsDashboard.add(studentDashboard);
         }
 
         return studentsDashboard;
+    }
+
+    public StudentDashboard getStudent(int id) {
+        Student student = repository.findById(id).orElse(null);
+        assert student != null;
+        return convertStudentToStudentDashboard(student);
     }
 
     public Student getStudentById(int id) {
