@@ -9,10 +9,8 @@ import com.imambiplob.studentsapi.entity.Student;
 import com.imambiplob.studentsapi.enums.Grade;
 import com.imambiplob.studentsapi.enums.HSCSubject;
 import com.imambiplob.studentsapi.enums.SSCSubject;
-import com.imambiplob.studentsapi.service.HSCService;
-import com.imambiplob.studentsapi.service.JwtService;
-import com.imambiplob.studentsapi.service.SSCService;
-import com.imambiplob.studentsapi.service.StudentService;
+import com.imambiplob.studentsapi.filter.JwtAuthFilter;
+import com.imambiplob.studentsapi.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +23,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,15 +33,17 @@ public class StudentController {
     private final SSCService sscService;
     private final HSCService hscService;
     private final JwtService jwtService;
+    private final JwtAuthFilter jwtAuthFilter;
 
     private final AuthenticationManager authenticationManager;
 
-    public StudentController(StudentService studentService, PasswordEncoder passwordEncoder, SSCService sscService, HSCService hscService, JwtService jwtService, AuthenticationManager authenticationManager) {
+    public StudentController(StudentService studentService, PasswordEncoder passwordEncoder, SSCService sscService, HSCService hscService, JwtService jwtService, JwtAuthFilter jwtAuthFilter, AuthenticationManager authenticationManager) {
         this.studentService = studentService;
         this.passwordEncoder = passwordEncoder;
         this.sscService = sscService;
         this.hscService = hscService;
         this.jwtService = jwtService;
+        this.jwtAuthFilter = jwtAuthFilter;
         this.authenticationManager = authenticationManager;
     }
 
@@ -90,9 +89,9 @@ public class StudentController {
     }
 
     @GetMapping("/student/{id}")
-    public ResponseEntity<?> getStudentById(@PathVariable int id, Principal principal) {
+    public ResponseEntity<?> getStudentById(@PathVariable int id) {
 
-        if(Objects.equals(principal.getName(), studentService.getStudentById(id).getEmail())) {
+        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail())) {
             StudentDashboard student = studentService.getStudent(id);
             return new ResponseEntity<>(student, HttpStatus.OK);
         }
@@ -112,8 +111,8 @@ public class StudentController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateStudent(@Valid @RequestBody RegisterStudent student, @PathVariable int id, Principal principal) {
-        if(Objects.equals(principal.getName(), studentService.getStudentById(id).getEmail())) {
+    public ResponseEntity<?> updateStudent(@Valid @RequestBody RegisterStudent student, @PathVariable int id) {
+        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail())) {
             student.setPassword(passwordEncoder.encode(student.getPassword()));
             Student existingStudent = studentService.getStudentById(id);
             sscService.addSubjectGradeMapping(student.getSsc(), existingStudent.getSsc());
@@ -127,8 +126,8 @@ public class StudentController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteStudent(@PathVariable int id, Principal principal) {
-        if (Objects.equals(principal.getName(), studentService.getStudentById(id).getEmail())) {
+    public ResponseEntity<String> deleteStudent(@PathVariable int id) {
+        if (Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail())) {
             String message = studentService.deleteStudent(id);
             return new ResponseEntity<>(message, HttpStatus.OK);
         }
