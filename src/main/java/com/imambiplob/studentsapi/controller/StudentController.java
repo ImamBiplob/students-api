@@ -102,7 +102,7 @@ public class StudentController {
     @GetMapping("/student/{id}")
     public ResponseEntity<?> getStudentById(@PathVariable int id) {
 
-        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail())) {
+        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || Objects.equals(jwtAuthFilter.getRole(), "Admin")) {
             StudentDashboard student = studentService.getStudent(id);
             return new ResponseEntity<>(student, HttpStatus.OK);
         }
@@ -123,7 +123,7 @@ public class StudentController {
 
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateStudent(@Valid @RequestBody RegisterStudent student, @PathVariable int id) {
-        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail())) {
+        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || Objects.equals(jwtAuthFilter.getRole(), "Admin")) {
             student.setPassword(passwordEncoder.encode(student.getPassword()));
             Student existingStudent = studentService.getStudentById(id);
             sscService.addSubjectGradeMapping(student.getSsc(), existingStudent.getSsc());
@@ -138,7 +138,7 @@ public class StudentController {
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteStudent(@PathVariable int id) {
-        if (Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail())) {
+        if (Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || Objects.equals(jwtAuthFilter.getRole(), "Admin")) {
             String message = studentService.deleteStudent(id);
             return new ResponseEntity<>(message, HttpStatus.OK);
         }
