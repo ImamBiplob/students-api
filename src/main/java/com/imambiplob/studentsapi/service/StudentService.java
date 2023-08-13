@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.imambiplob.studentsapi.util.StudentUtil.convertStudentToStudentDashboard;
 
@@ -36,10 +37,11 @@ public class StudentService {
         List<Student> students = repository.findAll();
         List<StudentDashboard> studentsDashboard = new ArrayList<>();
         for(Student student: students) {
-            StudentDashboard studentDashboard = convertStudentToStudentDashboard(student);
-            studentsDashboard.add(studentDashboard);
+            if(Objects.equals(student.getRole(), "Student")) {
+                StudentDashboard studentDashboard = convertStudentToStudentDashboard(student);
+                studentsDashboard.add(studentDashboard);
+            }
         }
-
         return studentsDashboard;
     }
 
