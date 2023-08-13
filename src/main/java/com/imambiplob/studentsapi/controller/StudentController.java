@@ -13,6 +13,7 @@ import com.imambiplob.studentsapi.filter.JwtAuthFilter;
 import com.imambiplob.studentsapi.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +23,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,16 +34,17 @@ public class StudentController {
     private final HSCService hscService;
     private final JwtService jwtService;
     private final JwtAuthFilter jwtAuthFilter;
-
+    private final StudentDetailsService studentDetailsService;
     private final AuthenticationManager authenticationManager;
 
-    public StudentController(StudentService studentService, PasswordEncoder passwordEncoder, SSCService sscService, HSCService hscService, JwtService jwtService, JwtAuthFilter jwtAuthFilter, AuthenticationManager authenticationManager) {
+    public StudentController(StudentService studentService, PasswordEncoder passwordEncoder, SSCService sscService, HSCService hscService, JwtService jwtService, JwtAuthFilter jwtAuthFilter, StudentDetailsService studentDetailsService, AuthenticationManager authenticationManager) {
         this.studentService = studentService;
         this.passwordEncoder = passwordEncoder;
         this.sscService = sscService;
         this.hscService = hscService;
         this.jwtService = jwtService;
         this.jwtAuthFilter = jwtAuthFilter;
+        this.studentDetailsService = studentDetailsService;
         this.authenticationManager = authenticationManager;
     }
 
@@ -51,11 +52,21 @@ public class StudentController {
     public String authAndGetToken(@RequestBody AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
         if(authentication.isAuthenticated())
-            return jwtService.generateToken(authRequest.getEmail());
+            return jwtService.generateToken(authRequest.getEmail(), (List<GrantedAuthority>) studentDetailsService.loadUserByUsername(authRequest.getEmail()).getAuthorities());
         else throw new UsernameNotFoundException("Invalid User Request!!!");
-
     }
+
+    @GetMapping("/getRole")
+    public String getRole(@RequestHeader("Authorization") String header) {
+        if(header != null && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            return jwtService.extractRole(token);
+        }
+        return null;
+    }
+
     @PostMapping("/addStudent")
+    @PreAuthorize("hasAuthority('Admin')")
     public Student addStudent(@Valid @RequestBody RegisterStudent student) {
         student.setPassword(passwordEncoder.encode(student.getPassword()));
         Student newStudent = new Student();
@@ -83,7 +94,7 @@ public class StudentController {
     }
 
     @GetMapping("/students")
-    @PreAuthorize("hasAuthority('Dhaka')")
+    @PreAuthorize("hasAuthority('Admin')")
     public List<StudentDashboard> getAllStudents() {
         return studentService.getStudents();
     }

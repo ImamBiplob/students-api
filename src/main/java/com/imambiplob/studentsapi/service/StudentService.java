@@ -2,11 +2,7 @@ package com.imambiplob.studentsapi.service;
 
 import com.imambiplob.studentsapi.dto.RegisterStudent;
 import com.imambiplob.studentsapi.dto.StudentDashboard;
-import com.imambiplob.studentsapi.dto.SubjectGpaDto;
 import com.imambiplob.studentsapi.entity.Student;
-import com.imambiplob.studentsapi.enums.Grade;
-import com.imambiplob.studentsapi.enums.HSCSubject;
-import com.imambiplob.studentsapi.enums.SSCSubject;
 import com.imambiplob.studentsapi.repository.StudentRepository;
 import org.springframework.stereotype.Service;
 

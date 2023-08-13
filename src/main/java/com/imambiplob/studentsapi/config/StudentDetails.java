@@ -19,7 +19,7 @@ public class StudentDetails implements UserDetails {
     public StudentDetails(Student student) {
         email = student.getEmail();
         password = student.getPassword();
-        authorityList = Arrays.stream(student.getBoard().split(","))
+        authorityList = Arrays.stream(student.getRole().split(","))
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
     }

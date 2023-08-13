@@ -39,8 +39,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/addStudent", "/SSCSubjects", "HSCSubjects", "/Grades", "/authenticate").permitAll()
-                        .requestMatchers("/students", "/update/{id}", "/**").authenticated())
+                        .requestMatchers( "/SSCSubjects", "HSCSubjects", "/Grades", "/authenticate").permitAll()
+                        .requestMatchers("/addStudent", "/students", "/update/{id}", "/**").authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);

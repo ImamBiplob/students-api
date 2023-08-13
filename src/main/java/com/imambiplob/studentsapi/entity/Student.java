@@ -1,10 +1,7 @@
 package com.imambiplob.studentsapi.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,10 +30,12 @@ public class Student {
     private LocalDate dob;
     @NotNull(message = "Board should not be empty")
     private String board;
+    //@Pattern(value = "^(?=.*[A-Z])(?=.*\\W).*$", message = "Password must contain at least one uppercase and one lowercase letter")
     @NotBlank(message = "Password is mandatory")
     private String password;
     private String contact;
     private String address;
+    private String role = "Student";
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "ssc_id", referencedColumnName = "sscId")

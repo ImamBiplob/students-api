@@ -9,3 +9,5 @@ update student_tbl set email = "nafisha@gmail.com" where id = 3;
 delete from student_tbl where id = 4;
 
 select * from student_tbl;
+
+insert into student_tbl(id, first_name, last_name, email, password, role, board) values (1, "Imam", "Biplob", "admin@gmail.com", "admin", "Admin", "N/A");
