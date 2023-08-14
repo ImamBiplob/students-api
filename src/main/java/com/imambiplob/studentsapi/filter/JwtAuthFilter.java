@@ -26,8 +26,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private String email = null;
     @Getter
-    private String token = null;
-    @Getter
     private String role = null;
 
     public JwtAuthFilter(JwtService jwtService, StudentDetailsService studentDetailsService) {
@@ -38,27 +36,32 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String authHeader = request.getHeader("Authorization");
-
-        token = null;
-
-        if(authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            role = jwtService.extractRole(token);
-            email = jwtService.extractUsername(token);
+        if (request.getServletPath().matches("/authenticate|/Grades|HSCSubjects/|/SSCSubjects")) {
+            filterChain.doFilter(request, response);
         }
+        else {
+            String authHeader = request.getHeader("Authorization");
 
-        if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = studentDetailsService.loadUserByUsername(email);
+            String token = null;
 
-            if(jwtService.validateToken(token, userDetails)){
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            if(authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
+                email = jwtService.extractUsername(token);
+                role = jwtService.extractRole(token);
             }
-        }
 
-        filterChain.doFilter(request, response);
+            if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = studentDetailsService.loadUserByUsername(email);
+
+                if(jwtService.validateToken(token, userDetails)){
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
+
+            filterChain.doFilter(request, response);
+        }
 
     }
 
