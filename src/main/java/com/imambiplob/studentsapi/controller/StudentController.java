@@ -13,7 +13,6 @@ import com.imambiplob.studentsapi.filter.JwtAuthFilter;
 import com.imambiplob.studentsapi.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,12 +51,12 @@ public class StudentController {
     public String authAndGetToken(@RequestBody AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
         if(authentication.isAuthenticated())
-            return jwtService.generateToken(authRequest.getEmail(), (List<GrantedAuthority>) studentDetailsService.loadUserByUsername(authRequest.getEmail()).getAuthorities());
+            return jwtService.generateToken(authRequest.getEmail(), (List) studentDetailsService.loadUserByUsername(authRequest.getEmail()).getAuthorities());
         else throw new UsernameNotFoundException("Invalid User Request!!!");
     }
 
     @GetMapping("/getRole")
-    public String getRole(@RequestHeader("Authorization") String header) {
+    public List getRole(@RequestHeader("Authorization") String header) {
         if(header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             return jwtService.extractRole(token);
@@ -102,7 +101,7 @@ public class StudentController {
     @GetMapping("/student/{id}")
     public ResponseEntity<?> getStudentById(@PathVariable int id) {
 
-        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || Objects.equals(jwtAuthFilter.getRole(), "Admin")) {
+        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
             StudentDashboard student = studentService.getStudent(id);
             return new ResponseEntity<>(student, HttpStatus.OK);
         }
@@ -123,7 +122,7 @@ public class StudentController {
 
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateStudent(@Valid @RequestBody RegisterStudent student, @PathVariable int id) {
-        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || Objects.equals(jwtAuthFilter.getRole(), "Admin")) {
+        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
             student.setPassword(passwordEncoder.encode(student.getPassword()));
             Student existingStudent = studentService.getStudentById(id);
             sscService.addSubjectGradeMapping(student.getSsc(), existingStudent.getSsc());
@@ -138,7 +137,7 @@ public class StudentController {
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteStudent(@PathVariable int id) {
-        if (Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || Objects.equals(jwtAuthFilter.getRole(), "Admin")) {
+        if (Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
             String message = studentService.deleteStudent(id);
             return new ResponseEntity<>(message, HttpStatus.OK);
         }
