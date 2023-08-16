@@ -2,24 +2,41 @@ package com.imambiplob.studentsapi.service;
 
 import com.imambiplob.studentsapi.dto.RegisterStudent;
 import com.imambiplob.studentsapi.dto.StudentDashboard;
+import com.imambiplob.studentsapi.entity.HSC;
+import com.imambiplob.studentsapi.entity.SSC;
 import com.imambiplob.studentsapi.entity.Student;
 import com.imambiplob.studentsapi.repository.StudentRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.imambiplob.studentsapi.util.StudentUtil.convertStudentToStudentDashboard;
 
 @Service
 public class StudentService {
     private final StudentRepository repository;
-    public StudentService(StudentRepository repository) {
+
+    private final PasswordEncoder passwordEncoder;
+    private final SSCService sscService;
+    private final HSCService hscService;
+    public StudentService(StudentRepository repository, PasswordEncoder passwordEncoder, SSCService sscService, HSCService hscService) {
         this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
+        this.sscService = sscService;
+        this.hscService = hscService;
     }
 
-    public Student saveStudent(Student newStudent, RegisterStudent student) {
+    public Student saveStudent(RegisterStudent student) {
+        student.setPassword(passwordEncoder.encode(student.getPassword()));
+        Student newStudent = new Student();
+        newStudent.setSsc(new SSC());
+        newStudent.setHsc(new HSC());
+        sscService.addSubjectGradeMapping(student.getSsc(), newStudent.getSsc());
+        hscService.addSubjectGradeMapping(student.getHsc(), newStudent.getHsc());
         newStudent.setFirstName(student.getFirstName());
         newStudent.setLastName(student.getLastName());
         newStudent.setDob(student.getDob());
@@ -55,6 +72,10 @@ public class StudentService {
         return repository.findById(id).orElse(null);
     }
 
+    public Optional<Student> getStudentByEmail(String email) {
+        return repository.findByEmail(email);
+    }
+
     public Student getStudentByFirstName(String firstName) {
         return repository.findByFirstName(firstName);
     }
@@ -71,7 +92,12 @@ public class StudentService {
         return "Student Profile Deleted of ID: " + id + " and Name: " + name;
     }
 
-    public Student updateStudent(Student existingStudent, RegisterStudent student) {
+    public Student updateStudent(RegisterStudent student, int id) {
+        student.setPassword(passwordEncoder.encode(student.getPassword()));
+        Student existingStudent = getStudentById(id);
+        sscService.addSubjectGradeMapping(student.getSsc(), existingStudent.getSsc());
+        hscService.addSubjectGradeMapping(student.getHsc(), existingStudent.getHsc());
+
         existingStudent.setFirstName(student.getFirstName());
         existingStudent.setLastName(student.getLastName());
         existingStudent.setEmail(student.getEmail());

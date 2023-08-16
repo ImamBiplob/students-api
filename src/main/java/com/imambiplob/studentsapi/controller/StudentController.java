@@ -1,20 +1,20 @@
 package com.imambiplob.studentsapi.controller;
 
+import com.imambiplob.studentsapi.config.StudentDetails;
 import com.imambiplob.studentsapi.dto.AuthRequest;
 import com.imambiplob.studentsapi.dto.RegisterStudent;
 import com.imambiplob.studentsapi.dto.StudentDashboard;
-import com.imambiplob.studentsapi.entity.HSC;
-import com.imambiplob.studentsapi.entity.SSC;
 import com.imambiplob.studentsapi.entity.Student;
 import com.imambiplob.studentsapi.enums.Grade;
 import com.imambiplob.studentsapi.enums.HSCSubject;
 import com.imambiplob.studentsapi.enums.SSCSubject;
 import com.imambiplob.studentsapi.filter.JwtAuthFilter;
-import com.imambiplob.studentsapi.service.*;
+import com.imambiplob.studentsapi.service.JwtService;
+import com.imambiplob.studentsapi.service.StudentDetailsService;
+import com.imambiplob.studentsapi.service.StudentService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,23 +24,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 public class StudentController {
     private final StudentService studentService;
-    private final PasswordEncoder passwordEncoder;
-    private final SSCService sscService;
-    private final HSCService hscService;
     private final JwtService jwtService;
     private final JwtAuthFilter jwtAuthFilter;
     private final StudentDetailsService studentDetailsService;
     private final AuthenticationManager authenticationManager;
 
-    public StudentController(StudentService studentService, PasswordEncoder passwordEncoder, SSCService sscService, HSCService hscService, JwtService jwtService, JwtAuthFilter jwtAuthFilter, StudentDetailsService studentDetailsService, AuthenticationManager authenticationManager) {
+    public StudentController(StudentService studentService, JwtService jwtService, JwtAuthFilter jwtAuthFilter, StudentDetailsService studentDetailsService, AuthenticationManager authenticationManager) {
         this.studentService = studentService;
-        this.passwordEncoder = passwordEncoder;
-        this.sscService = sscService;
-        this.hscService = hscService;
         this.jwtService = jwtService;
         this.jwtAuthFilter = jwtAuthFilter;
         this.studentDetailsService = studentDetailsService;
@@ -64,17 +59,23 @@ public class StudentController {
         return null;
     }
 
+    @GetMapping("/getId")
+    public ResponseEntity<?> getId(@RequestHeader("Authorization") String header) {
+        if(header != null && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            String email = jwtService.extractUsername(token);
+            StudentDashboard student = studentService.getStudentByEmail(email).map(StudentDashboard::new)
+                    .orElseThrow(() -> new UsernameNotFoundException("Student not found " + email));
+            return new ResponseEntity<>(student.getId(), HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
     @PostMapping("/addStudent")
     @PreAuthorize("hasAuthority('Admin')")
     public Student addStudent(@Valid @RequestBody RegisterStudent student) {
-        student.setPassword(passwordEncoder.encode(student.getPassword()));
-        Student newStudent = new Student();
-        newStudent.setSsc(new SSC());
-        newStudent.setHsc(new HSC());
-        sscService.addSubjectGradeMapping(student.getSsc(), newStudent.getSsc());
-        hscService.addSubjectGradeMapping(student.getHsc(), newStudent.getHsc());
-
-        return studentService.saveStudent(newStudent, student);
+        return studentService.saveStudent(student);
     }
 
     @GetMapping("/SSCSubjects")
@@ -122,12 +123,9 @@ public class StudentController {
 
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateStudent(@Valid @RequestBody RegisterStudent student, @PathVariable int id) {
+
         if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
-            student.setPassword(passwordEncoder.encode(student.getPassword()));
-            Student existingStudent = studentService.getStudentById(id);
-            sscService.addSubjectGradeMapping(student.getSsc(), existingStudent.getSsc());
-            hscService.addSubjectGradeMapping(student.getHsc(), existingStudent.getHsc());
-            Student updatedStudent = studentService.updateStudent(existingStudent, student);
+            Student updatedStudent = studentService.updateStudent(student, id);
             return new ResponseEntity<>(updatedStudent, HttpStatus.OK);
         }
 
@@ -137,10 +135,12 @@ public class StudentController {
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteStudent(@PathVariable int id) {
+
         if (Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
             String message = studentService.deleteStudent(id);
             return new ResponseEntity<>(message, HttpStatus.OK);
         }
+
         String message = "You can not delete other student's profile!!!";
         return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
     }

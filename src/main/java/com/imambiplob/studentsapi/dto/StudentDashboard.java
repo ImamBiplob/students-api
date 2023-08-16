@@ -1,5 +1,6 @@
 package com.imambiplob.studentsapi.dto;
 
+import com.imambiplob.studentsapi.entity.Student;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,4 +28,8 @@ public class StudentDashboard {
 
     private List<SubjectGpaDto> ssc;
     private List<SubjectGpaDto> hsc;
+
+    public StudentDashboard(Student student) {
+        id = student.getId();
+    }
 }

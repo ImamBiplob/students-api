@@ -4,12 +4,9 @@ import com.imambiplob.studentsapi.dto.SubjectGpaDto;
 import com.imambiplob.studentsapi.entity.HSC;
 import com.imambiplob.studentsapi.enums.Grade;
 import com.imambiplob.studentsapi.enums.HSCSubject;
-import com.imambiplob.studentsapi.enums.SSCSubject;
 import com.imambiplob.studentsapi.repository.HSCRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Iterator;
 import java.util.List;
 
 @Service
