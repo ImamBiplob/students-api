@@ -49,12 +49,12 @@ public class StudentController {
     }
 
     @GetMapping("/getRole")
-    public List getRole(@RequestHeader("Authorization") String header) {
+    public ResponseEntity<?> getRole(@RequestHeader("Authorization") String header) {
         if(header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-            return jwtService.extractRole(token);
+            return new ResponseEntity<>(jwtService.extractRole(token), HttpStatus.OK);
         }
-        return null;
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/getId")

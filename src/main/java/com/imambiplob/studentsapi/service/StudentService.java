@@ -97,7 +97,6 @@ public class StudentService {
         Student existingStudent = getStudentById(id);
         sscService.addSubjectGradeMapping(student.getSsc(), existingStudent.getSsc());
         hscService.addSubjectGradeMapping(student.getHsc(), existingStudent.getHsc());
-
         existingStudent.setFirstName(student.getFirstName());
         existingStudent.setLastName(student.getLastName());
         existingStudent.setEmail(student.getEmail());
