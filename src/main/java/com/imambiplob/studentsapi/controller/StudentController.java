@@ -1,6 +1,5 @@
 package com.imambiplob.studentsapi.controller;
 
-import com.imambiplob.studentsapi.config.StudentDetails;
 import com.imambiplob.studentsapi.dto.AuthRequest;
 import com.imambiplob.studentsapi.dto.RegisterStudent;
 import com.imambiplob.studentsapi.dto.StudentDashboard;
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @RestController
 public class StudentController {
