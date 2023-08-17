@@ -49,7 +49,6 @@ public class StudentService {
         return repository.save(newStudent);
     }
 
-
     public List<StudentDashboard> getStudents() {
         List<Student> students = repository.findAll();
         List<StudentDashboard> studentsDashboard = new ArrayList<>();
@@ -76,14 +75,6 @@ public class StudentService {
         return repository.findByEmail(email);
     }
 
-    public Student getStudentByFirstName(String firstName) {
-        return repository.findByFirstName(firstName);
-    }
-
-    public Student getStudentByLastName(String lastName) {
-        return repository.findByLastName(lastName);
-    }
-
     public String deleteStudent(int id) {
         Student student = repository.findById(id).orElse(null);
         assert student != null;
@@ -92,8 +83,7 @@ public class StudentService {
         return "Student Profile Deleted of ID: " + id + " and Name: " + name;
     }
 
-    public Student updateStudent(RegisterStudent student, int id) {
-        student.setPassword(passwordEncoder.encode(student.getPassword()));
+    public Student updateStudent(StudentDashboard student, int id) {
         Student existingStudent = getStudentById(id);
         sscService.addSubjectGradeMapping(student.getSsc(), existingStudent.getSsc());
         hscService.addSubjectGradeMapping(student.getHsc(), existingStudent.getHsc());
@@ -102,7 +92,6 @@ public class StudentService {
         existingStudent.setEmail(student.getEmail());
         existingStudent.setDob(student.getDob());
         existingStudent.setBoard(student.getBoard());
-        existingStudent.setPassword(student.getPassword());
         existingStudent.setAddress(student.getAddress());
         existingStudent.setContact(student.getContact());
 

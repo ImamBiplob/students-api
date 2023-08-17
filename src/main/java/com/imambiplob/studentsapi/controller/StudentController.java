@@ -109,18 +109,8 @@ public class StudentController {
         return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
     }
 
-    @GetMapping("/studentByFirstName/{firstName}")
-    public Student getStudentByFirstName(@PathVariable String firstName) {
-        return studentService.getStudentByFirstName(firstName);
-    }
-
-    @GetMapping("/studentByLastName/{lastName}")
-    public Student getStudentByLastName(@PathVariable String lastName) {
-        return studentService.getStudentByLastName(lastName);
-    }
-
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateStudent(@Valid @RequestBody RegisterStudent student, @PathVariable int id) {
+    public ResponseEntity<?> updateStudent(@Valid @RequestBody StudentDashboard student, @PathVariable int id) {
 
         if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
             Student updatedStudent = studentService.updateStudent(student, id);
@@ -134,12 +124,12 @@ public class StudentController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteStudent(@PathVariable int id) {
 
-        if (Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
+        if (jwtAuthFilter.isAdmin()) {
             String message = studentService.deleteStudent(id);
             return new ResponseEntity<>(message, HttpStatus.OK);
         }
 
-        String message = "You can not delete other student's profile!!!";
+        String message = "You can not delete student profile!!!";
         return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
     }
 }
