@@ -1,5 +1,6 @@
 package com.imambiplob.studentsapi.service;
 
+import com.imambiplob.studentsapi.dto.ChangePassword;
 import com.imambiplob.studentsapi.dto.RegisterStudent;
 import com.imambiplob.studentsapi.dto.StudentDashboard;
 import com.imambiplob.studentsapi.entity.HSC;
@@ -96,5 +97,15 @@ public class StudentService {
         existingStudent.setContact(student.getContact());
 
         return repository.save(existingStudent);
+    }
+
+    public String changePassword(ChangePassword changePassword, int id) {
+        Student student = getStudentById(id);
+        if(passwordEncoder.matches(changePassword.getOldPassword(), student.getPassword()) ) {
+            student.setPassword(passwordEncoder.encode(changePassword.getNewPassword()));
+            repository.save(student);
+            return "Password Changed";
+        }
+        return "Password did not match!!! Try Again";
     }
 }

@@ -15,10 +15,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegisterStudent {
-    @NotNull(message = "This field should not be empty")
+    @NotNull(message = "First Name should not be empty")
     @Size(min = 2, max = 50,message = "First Name should be between 2 to 50 characters")
     private String firstName;
-    @NotNull(message = "This field should not be empty")
+    @NotNull(message = "Last Name should not be empty")
     @Size(min = 2, max = 50,message = "Last Name should be between 2 to 50 characters")
     private String lastName;
     @NotBlank(message = "Email is mandatory")
@@ -28,7 +28,7 @@ public class RegisterStudent {
     private String password;
     private String contact;
     private LocalDate dob;
-    @NotNull(message = "This field should not be empty")
+    @NotNull(message = "Board should not be empty")
     private String board;
     private String address;
 

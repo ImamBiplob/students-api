@@ -1,9 +1,9 @@
 package com.imambiplob.studentsapi.controller;
 
 import com.imambiplob.studentsapi.dto.AuthRequest;
+import com.imambiplob.studentsapi.dto.ChangePassword;
 import com.imambiplob.studentsapi.dto.RegisterStudent;
 import com.imambiplob.studentsapi.dto.StudentDashboard;
-import com.imambiplob.studentsapi.entity.Student;
 import com.imambiplob.studentsapi.enums.Grade;
 import com.imambiplob.studentsapi.enums.HSCSubject;
 import com.imambiplob.studentsapi.enums.SSCSubject;
@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Objects;
 
+import static com.imambiplob.studentsapi.util.StudentUtil.convertStudentToStudentDashboard;
+
 @RestController
 public class StudentController {
     private final StudentService studentService;
@@ -41,39 +43,63 @@ public class StudentController {
     }
 
     @PostMapping("/authenticate")
-    public String authAndGetToken(@RequestBody AuthRequest authRequest) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
-        if(authentication.isAuthenticated())
-            return jwtService.generateToken(authRequest.getEmail(), (List) studentDetailsService.loadUserByUsername(authRequest.getEmail()).getAuthorities());
-        else throw new UsernameNotFoundException("Invalid User Request!!!");
+    public ResponseEntity<?> authAndGetToken(@Valid @RequestBody AuthRequest authRequest) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
+            if(authentication.isAuthenticated())
+                return new ResponseEntity<>(jwtService.generateToken(authRequest.getEmail(), (List) studentDetailsService.loadUserByUsername(authRequest.getEmail()).getAuthorities()), HttpStatus.OK);
+            else throw new UsernameNotFoundException("Invalid User Request!!!");
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping("/getRole")
     public ResponseEntity<?> getRole(@RequestHeader("Authorization") String header) {
-        if(header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            return new ResponseEntity<>(jwtService.extractRole(token), HttpStatus.OK);
+        try {
+            if(header != null && header.startsWith("Bearer ")) {
+                String token = header.substring(7);
+                return new ResponseEntity<>(jwtService.extractRole(token), HttpStatus.OK);
+            }
+
+            String message = "Invalid Token!!!";
+            return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+
+        } catch (Exception e) {
+            String message = "Invalid Token!!!";
+            return new ResponseEntity<>(message + " " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/getId")
     public ResponseEntity<?> getId(@RequestHeader("Authorization") String header) {
-        if(header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            String email = jwtService.extractUsername(token);
-            StudentDashboard student = studentService.getStudentByEmail(email).map(StudentDashboard::new)
-                    .orElseThrow(() -> new UsernameNotFoundException("Student not found " + email));
-            return new ResponseEntity<>(student.getId(), HttpStatus.OK);
-        }
+        try {
+            if(header != null && header.startsWith("Bearer ")) {
+                String token = header.substring(7);
+                String email = jwtService.extractUsername(token);
+                StudentDashboard student = studentService.getStudentByEmail(email).map(StudentDashboard::new)
+                        .orElseThrow(() -> new UsernameNotFoundException("Student not found " + email));
+                return new ResponseEntity<>(student.getId(), HttpStatus.OK);
+            }
 
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            String message = "Invalid Token!!!";
+            return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+
+        } catch (Exception e) {
+            String message = "Invalid Token!!!";
+            return new ResponseEntity<>(message + " " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PostMapping("/addStudent")
     @PreAuthorize("hasAuthority('Admin')")
-    public Student addStudent(@Valid @RequestBody RegisterStudent student) {
-        return studentService.saveStudent(student);
+    public ResponseEntity<?> addStudent(@Valid @RequestBody RegisterStudent student) {
+        if(studentService.getStudentByEmail(student.getEmail()).isPresent()) {
+            return new ResponseEntity<>("This Email is already registered!!! Try Again", HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(convertStudentToStudentDashboard(studentService.saveStudent(student)), HttpStatus.CREATED);
     }
 
     @GetMapping("/SSCSubjects")
@@ -99,37 +125,56 @@ public class StudentController {
 
     @GetMapping("/student/{id}")
     public ResponseEntity<?> getStudentById(@PathVariable int id) {
+        if(studentService.getStudentById(id) == null)
+            return new ResponseEntity<>("There is no student with this ID!!! Try Again", HttpStatus.BAD_REQUEST);
 
         if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
             StudentDashboard student = studentService.getStudent(id);
             return new ResponseEntity<>(student, HttpStatus.OK);
         }
 
-        String message = "You are not allowed to view this profile";
-        return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>("You are not allowed to view this profile", HttpStatus.FORBIDDEN);
     }
 
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateStudent(@Valid @RequestBody StudentDashboard student, @PathVariable int id) {
+        if(studentService.getStudentById(id) == null)
+            return new ResponseEntity<>("There is no student with this ID!!! Try Again", HttpStatus.BAD_REQUEST);
 
         if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
-            Student updatedStudent = studentService.updateStudent(student, id);
+            StudentDashboard updatedStudent = convertStudentToStudentDashboard(studentService.updateStudent(student, id));
             return new ResponseEntity<>(updatedStudent, HttpStatus.OK);
         }
 
-        String message = "You are not allowed to update this profile";
-        return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>("You are not allowed to update this profile", HttpStatus.FORBIDDEN);
+    }
+
+    @PutMapping("/changePassword/{id}")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePassword changePassword, @PathVariable int id) {
+        if(studentService.getStudentById(id) == null)
+            return new ResponseEntity<>("There is no student with this ID!!! Try Again", HttpStatus.BAD_REQUEST);
+
+        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
+            String message = studentService.changePassword(changePassword, id);
+            if(message.equalsIgnoreCase("Password Changed")){
+                return new ResponseEntity<>(message, HttpStatus.OK);
+            }
+            return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>("You can not change other student's password", HttpStatus.FORBIDDEN);
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteStudent(@PathVariable int id) {
+        if(studentService.getStudentById(id) == null)
+            return new ResponseEntity<>("There is no student with this ID!!! Try Again", HttpStatus.BAD_REQUEST);
 
         if (jwtAuthFilter.isAdmin()) {
             String message = studentService.deleteStudent(id);
             return new ResponseEntity<>(message, HttpStatus.OK);
         }
 
-        String message = "You can not delete student profile!!!";
-        return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>("You can not delete student profile!!!", HttpStatus.FORBIDDEN);
     }
 }
