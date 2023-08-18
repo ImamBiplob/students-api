@@ -44,52 +44,23 @@ public class StudentController {
 
     @PostMapping("/authenticate")
     public ResponseEntity<?> authAndGetToken(@Valid @RequestBody AuthRequest authRequest) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
-            if(authentication.isAuthenticated())
-                return new ResponseEntity<>(jwtService.generateToken(authRequest.getEmail(), (List) studentDetailsService.loadUserByUsername(authRequest.getEmail()).getAuthorities()), HttpStatus.OK);
-            else throw new UsernameNotFoundException("Invalid User Request!!!");
-
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
+        if(authentication.isAuthenticated())
+            return new ResponseEntity<>(jwtService.generateToken(authRequest.getEmail(), (List) studentDetailsService.loadUserByUsername(authRequest.getEmail()).getAuthorities()), HttpStatus.OK);
+        else throw new UsernameNotFoundException("Invalid User Request!!!");
     }
 
     @GetMapping("/getRole")
-    public ResponseEntity<?> getRole(@RequestHeader("Authorization") String header) {
-        try {
-            if(header != null && header.startsWith("Bearer ")) {
-                String token = header.substring(7);
-                return new ResponseEntity<>(jwtService.extractRole(token), HttpStatus.OK);
-            }
-
-            String message = "Invalid Token!!!";
-            return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
-
-        } catch (Exception e) {
-            String message = "Invalid Token!!!";
-            return new ResponseEntity<>(message + " " + e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<?> getRole(@RequestHeader("Authorization") String token) {
+        return new ResponseEntity<>(jwtService.extractRole(token.substring(7)), HttpStatus.OK);
     }
 
     @GetMapping("/getId")
-    public ResponseEntity<?> getId(@RequestHeader("Authorization") String header) {
-        try {
-            if(header != null && header.startsWith("Bearer ")) {
-                String token = header.substring(7);
-                String email = jwtService.extractUsername(token);
-                StudentDashboard student = studentService.getStudentByEmail(email).map(StudentDashboard::new)
-                        .orElseThrow(() -> new UsernameNotFoundException("Student not found " + email));
-                return new ResponseEntity<>(student.getId(), HttpStatus.OK);
-            }
-
-            String message = "Invalid Token!!!";
-            return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
-
-        } catch (Exception e) {
-            String message = "Invalid Token!!!";
-            return new ResponseEntity<>(message + " " + e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<?> getId(@RequestHeader("Authorization") String token) {
+        String email = jwtService.extractUsername(token.substring(7));
+        StudentDashboard student = studentService.getStudentByEmail(email).map(StudentDashboard::new)
+                .orElseThrow(() -> new UsernameNotFoundException("Invalid User Request!!! " + email));
+        return new ResponseEntity<>(student.getId(), HttpStatus.OK);
     }
 
     @PostMapping("/addStudent")
