@@ -64,7 +64,6 @@ public class StudentController {
     }
 
     @PostMapping("/addStudent")
-    @PreAuthorize("hasAuthority('Admin')")
     public ResponseEntity<?> addStudent(@Valid @RequestBody RegisterStudent student) {
         if(studentService.getStudentByEmail(student.getEmail()).isPresent()) {
             return new ResponseEntity<>("This Email is already registered!!! Try Again", HttpStatus.BAD_REQUEST);
@@ -89,7 +88,7 @@ public class StudentController {
     }
 
     @GetMapping("/students")
-    @PreAuthorize("hasAuthority('Admin')")
+    //@PreAuthorize("hasAuthority('Admin')")
     public List<StudentDashboard> getAllStudents() {
         return studentService.getStudents();
     }
@@ -99,12 +98,12 @@ public class StudentController {
         if(studentService.getStudentById(id) == null)
             return new ResponseEntity<>("There is no student with this ID!!! Try Again", HttpStatus.BAD_REQUEST);
 
-        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
-            StudentDashboard student = studentService.getStudent(id);
-            return new ResponseEntity<>(student, HttpStatus.OK);
-        }
+        //if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
+        StudentDashboard student = studentService.getStudent(id);
+        return new ResponseEntity<>(student, HttpStatus.OK);
+        //}
 
-        return new ResponseEntity<>("You are not allowed to view this profile", HttpStatus.FORBIDDEN);
+        //return new ResponseEntity<>("You are not allowed to view this profile", HttpStatus.FORBIDDEN);
     }
 
     @PutMapping("/update/{id}")
@@ -112,12 +111,12 @@ public class StudentController {
         if(studentService.getStudentById(id) == null)
             return new ResponseEntity<>("There is no student with this ID!!! Try Again", HttpStatus.BAD_REQUEST);
 
-        if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
-            StudentDashboard updatedStudent = convertStudentToStudentDashboard(studentService.updateStudent(student, id));
-            return new ResponseEntity<>(updatedStudent, HttpStatus.OK);
-        }
+        //if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
+        StudentDashboard updatedStudent = convertStudentToStudentDashboard(studentService.updateStudent(student, id));
+        return new ResponseEntity<>(updatedStudent, HttpStatus.OK);
+        //}
 
-        return new ResponseEntity<>("You are not allowed to update this profile", HttpStatus.FORBIDDEN);
+        //return new ResponseEntity<>("You are not allowed to update this profile", HttpStatus.FORBIDDEN);
     }
 
     @PutMapping("/changePassword/{id}")
@@ -141,11 +140,11 @@ public class StudentController {
         if(studentService.getStudentById(id) == null)
             return new ResponseEntity<>("There is no student with this ID!!! Try Again", HttpStatus.BAD_REQUEST);
 
-        if (jwtAuthFilter.isAdmin()) {
-            String message = studentService.deleteStudent(id);
-            return new ResponseEntity<>(message, HttpStatus.OK);
-        }
+        //if (jwtAuthFilter.isAdmin()) {
+        String message = studentService.deleteStudent(id);
+        return new ResponseEntity<>(message, HttpStatus.OK);
+        //}
 
-        return new ResponseEntity<>("You can not delete student profile!!!", HttpStatus.FORBIDDEN);
+        //return new ResponseEntity<>("You can not delete student profile!!!", HttpStatus.FORBIDDEN);
     }
 }
