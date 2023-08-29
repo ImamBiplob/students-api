@@ -7,6 +7,9 @@ import com.imambiplob.studentsapi.dto.StudentDashboard;
 import com.imambiplob.studentsapi.enums.Grade;
 import com.imambiplob.studentsapi.enums.HSCSubject;
 import com.imambiplob.studentsapi.enums.SSCSubject;
+import com.imambiplob.studentsapi.exception.EmailAlreadyTakenException;
+import com.imambiplob.studentsapi.exception.IllegalActionException;
+import com.imambiplob.studentsapi.exception.StudentNotFoundException;
 import com.imambiplob.studentsapi.filter.JwtAuthFilter;
 import com.imambiplob.studentsapi.service.JwtService;
 import com.imambiplob.studentsapi.service.StudentDetailsService;
@@ -44,9 +47,13 @@ public class StudentController {
 
     @PostMapping("/authenticate")
     public ResponseEntity<?> authAndGetToken(@Valid @RequestBody AuthRequest authRequest) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
+
         if(authentication.isAuthenticated())
-            return new ResponseEntity<>(jwtService.generateToken(authRequest.getEmail(), (List) studentDetailsService.loadUserByUsername(authRequest.getEmail()).getAuthorities()), HttpStatus.OK);
+            return new ResponseEntity<>(jwtService.generateToken(authRequest.getEmail(),
+                    (List) studentDetailsService.loadUserByUsername(authRequest.getEmail()).getAuthorities()), HttpStatus.OK);
+
         else throw new UsernameNotFoundException("Invalid User Request!!!");
     }
 
@@ -65,9 +72,9 @@ public class StudentController {
 
     @PostMapping("/addStudent")
     @PreAuthorize("hasAuthority('Admin')")
-    public ResponseEntity<?> addStudent(@Valid @RequestBody RegisterStudent student) {
+    public ResponseEntity<?> addStudent(@Valid @RequestBody RegisterStudent student) throws EmailAlreadyTakenException {
         if(studentService.getStudentByEmail(student.getEmail()).isPresent()) {
-            return new ResponseEntity<>("This Email is already registered!!! Try Again", HttpStatus.BAD_REQUEST);
+            throw new EmailAlreadyTakenException(student.getEmail() + " is already registered!!! Try Again");
         }
 
         return new ResponseEntity<>(convertStudentToStudentDashboard(studentService.saveStudent(student)), HttpStatus.CREATED);
@@ -95,35 +102,35 @@ public class StudentController {
     }
 
     @GetMapping("/student/{id}")
-    public ResponseEntity<?> getStudentById(@PathVariable int id) {
+    public ResponseEntity<?> getStudentById(@PathVariable int id) throws StudentNotFoundException, IllegalActionException {
         if(studentService.getStudentById(id) == null)
-            return new ResponseEntity<>("There is no student with this ID!!! Try Again", HttpStatus.BAD_REQUEST);
+            throw new StudentNotFoundException("There is no student with ID " + id + "!!!" + "Try Again");
 
         if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
             StudentDashboard student = studentService.getStudent(id);
             return new ResponseEntity<>(student, HttpStatus.OK);
         }
 
-        return new ResponseEntity<>("You are not allowed to view this profile", HttpStatus.FORBIDDEN);
+        throw new IllegalActionException("You are not allowed to view this profile!!!");
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateStudent(@Valid @RequestBody StudentDashboard student, @PathVariable int id) {
+    public ResponseEntity<?> updateStudent(@Valid @RequestBody StudentDashboard student, @PathVariable int id) throws StudentNotFoundException, IllegalActionException {
         if(studentService.getStudentById(id) == null)
-            return new ResponseEntity<>("There is no student with this ID!!! Try Again", HttpStatus.BAD_REQUEST);
+            throw new StudentNotFoundException("There is no student with ID " + id + "!!!" + "Try Again");
 
         if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
             StudentDashboard updatedStudent = convertStudentToStudentDashboard(studentService.updateStudent(student, id));
             return new ResponseEntity<>(updatedStudent, HttpStatus.OK);
         }
 
-        return new ResponseEntity<>("You are not allowed to update this profile", HttpStatus.FORBIDDEN);
+        throw new IllegalActionException("You are not allowed to update this profile!!!");
     }
 
     @PutMapping("/changePassword/{id}")
-    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePassword changePassword, @PathVariable int id) {
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePassword changePassword, @PathVariable int id) throws StudentNotFoundException, IllegalActionException {
         if(studentService.getStudentById(id) == null)
-            return new ResponseEntity<>("There is no student with this ID!!! Try Again", HttpStatus.BAD_REQUEST);
+            throw new StudentNotFoundException("There is no student with ID " + id + "!!!" + "Try Again");
 
         if(Objects.equals(jwtAuthFilter.getCurrentUser(), studentService.getStudentById(id).getEmail()) || jwtAuthFilter.isAdmin()) {
             String message = studentService.changePassword(changePassword, id);
@@ -133,19 +140,19 @@ public class StudentController {
             return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
         }
 
-        return new ResponseEntity<>("You can not change other student's password", HttpStatus.FORBIDDEN);
+        throw new IllegalActionException("You can not change other student's password!!!");
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteStudent(@PathVariable int id) {
+    public ResponseEntity<String> deleteStudent(@PathVariable int id) throws StudentNotFoundException, IllegalActionException {
         if(studentService.getStudentById(id) == null)
-            return new ResponseEntity<>("There is no student with this ID!!! Try Again", HttpStatus.BAD_REQUEST);
+            throw new StudentNotFoundException("There is no student with ID " + id + "!!!" + "Try Again");
 
         if (jwtAuthFilter.isAdmin()) {
             String message = studentService.deleteStudent(id);
             return new ResponseEntity<>(message, HttpStatus.OK);
         }
 
-        return new ResponseEntity<>("You can not delete student profile!!!", HttpStatus.FORBIDDEN);
+        throw new IllegalActionException("You can not delete student profile!!!");
     }
 }

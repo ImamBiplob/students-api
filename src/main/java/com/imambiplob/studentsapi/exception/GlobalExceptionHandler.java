@@ -27,6 +27,27 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
+    //Handling student not found exception
+    @ExceptionHandler(StudentNotFoundException.class)
+    public ResponseEntity<?> customStudentNotFoundExceptionHandling(StudentNotFoundException exception) {
+        ErrorDetails errorDetails = new ErrorDetails(new Date(), "Student Not Found!!!", exception.getMessage());
+        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
+    }
+
+    //Handling email already taken exception
+    @ExceptionHandler(EmailAlreadyTakenException.class)
+    public ResponseEntity<?> customEmailAlreadyTakenExceptionHandling(EmailAlreadyTakenException exception) {
+        ErrorDetails errorDetails = new ErrorDetails(new Date(), "Email is Already Taken!!!", exception.getMessage());
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
+    //Handling illegal action exception
+    @ExceptionHandler(IllegalActionException.class)
+    public ResponseEntity<?> customIllegalActionExceptionHandling(IllegalActionException exception) {
+        ErrorDetails errorDetails = new ErrorDetails(new Date(), "Illegal Action Detected!!!", exception.getMessage());
+        return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
+    }
+
     //Handling bad credentials exception
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<?> customBadCredentialsExceptionHandling(BadCredentialsException exception) {
@@ -44,7 +65,7 @@ public class GlobalExceptionHandler {
     // Handling missing request header exception
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<?> customMissingRequestHeaderExceptionHandling(MissingRequestHeaderException exception) {
-        ErrorDetails errorDetails = new ErrorDetails(new Date(), "No header provided!!!", exception.getMessage());
+        ErrorDetails errorDetails = new ErrorDetails(new Date(), "No Header Provided!!!", exception.getMessage());
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
@@ -65,7 +86,7 @@ public class GlobalExceptionHandler {
     // Handling access control exception
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<?> customAccessControlHandling(AccessDeniedException exception) {
-        ErrorDetails errorDetails = new ErrorDetails(new Date(), "Access to this endpoint is SECURED!!!", exception.getMessage());
+        ErrorDetails errorDetails = new ErrorDetails(new Date(), "Access to this Endpoint is SECURED!!!", exception.getMessage());
         return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
     }
 
